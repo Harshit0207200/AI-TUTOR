@@ -1,0 +1,83 @@
+<!-- templates/chat.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HARSHIT'S AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <img src="https://img.freepik.com/free-vector/chatbot-chat-message-vectorart_78370-4104.jpg?semt=ais_hybrid&w=740&q=80" class="logo">
+        <h1 class="title">HARSHIT'S AI</h1>
+    </header>
+
+    <!-- Chat UI -->
+    <main class="chat-wrapper">
+        <div class="chat-box" id="chat-box">
+            <div class="ai-message bubble">
+                <p>Welcome! How can I assist you today?</p>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <p id="typing" class="typing" style="display: none;">AI is thinking...</p>
+
+        <!-- Input -->
+        <div class="input-area">
+            <textarea id="user-input" placeholder="Type your message here..."></textarea>
+            <button id="send-button">Send</button>
+        </div>
+    </main>
+
+    <!-- Chat Logic -->
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const input = document.getElementById('user-input');
+        const typing = document.getElementById('typing');
+
+        document.getElementById('send-button').addEventListener('click', sendMessage);
+        input.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
+
+        function sendMessage() {
+            const message = input.value.trim();
+            if (message === "") return;
+
+            // Add user bubble
+            addBubble(message, "user-message");
+
+            input.value = "";
+            typing.style.display = "block";
+
+            // Send API request
+            fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message })
+            })
+            .then(res => res.json())
+            .then(data => {
+                typing.style.display = "none";
+                addBubble(data.response, "ai-message");
+            })
+            .catch(() => {
+                typing.style.display = "none";
+                addBubble("Error communicating with the server.", "error-message");
+            });
+        }
+
+        function addBubble(text, type) {
+            const bubble = document.createElement("div");
+            bubble.className = type + " bubble";
+            bubble.innerHTML = `<p>${text}</p>`;
+            chatBox.appendChild(bubble);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+
+</body>
+</html>
